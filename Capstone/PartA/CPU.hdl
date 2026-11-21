@@ -1,0 +1,47 @@
+CHIP CPU {
+    IN inM[16], instruction[16], reset;
+    OUT outM[16], writeM, addressM[15], pc[15];
+
+    PARTS:
+    // --- Detect A-instruction (bit 15 = 0) ---
+    Not(in=instruction[15], out=isA);
+
+    // --- A register: load on A-instruction OR when dest bit (bit 5) is set ---
+    Mux16(a=aluOut, b=instruction, sel=isA, out=aIn);
+    Or(a=isA, b=instruction[5], out=loadA);
+    ARegister(in=aIn, load=loadA, out=aOut, out[0..14]=addressM);
+
+    // --- D register: load when C-instruction AND dest bit (bit 4) is set ---
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    DRegister(in=aluOut, load=loadD, out=dOut);
+
+    // --- ALU y input: A register or M (depends on bit 12) ---
+    Mux16(a=aOut, b=inM, sel=instruction[12], out=aluY);
+
+    // --- ALU ---
+    ALU(x=dOut, y=aluY,
+        zx=instruction[11], nx=instruction[10],
+        zy=instruction[9],  ny=instruction[8],
+        f=instruction[7],   no=instruction[6],
+        out=aluOut, zr=zr, ng=ng);
+
+    // --- writeM: only for C-instruction with dest bit 3 (M) set ---
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    // --- Jump logic ---
+    Not(in=ng, out=notNg);
+    Not(in=zr, out=notZr);
+    And(a=notNg, b=notZr, out=posCond);       // >0
+    And(a=instruction[0], b=posCond,  out=jGT);
+    And(a=instruction[1], b=zr,       out=jEQ);
+    And(a=instruction[2], b=ng,       out=jLT);
+    Or(a=jGT, b=jEQ,  out=jump01);
+    Or(a=jump01, b=jLT, out=jumpCond);
+    And(a=instruction[15], b=jumpCond, out=jump);
+
+    // --- Program counter: load on jump, always increment ---
+    PC(in=aOut, load=jump, inc=true, reset=reset, out[0..14]=pc);
+
+    // --- outM (pass ALU result through) ---
+    Mux16(a=aluOut, b=aluOut, sel=false, out=outM);
+}
