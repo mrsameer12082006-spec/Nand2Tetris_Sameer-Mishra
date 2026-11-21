@@ -41,43 +41,29 @@ CHIP ALU {
         ng;      // if (out < 0)  equals 1, else 0
 
     PARTS:
-    // x preprocessing
-    Mux16(a=x, b=false, sel=zx, out=xZeroed);
-    Not16(in=xZeroed, out=xNot);
-    Mux16(a=xZeroed, b=xNot, sel=nx, out=xProcessed);
+    // Step 1: Handle zx and nx (zero/negate x)
+    Mux16(a=x, b=false, sel=zx, out=x1);
+    Not16(in=x1, out=nx1);
+    Mux16(a=x1, b=nx1, sel=nx, out=x2);
 
-    // y preprocessing
-    Mux16(a=y, b=false, sel=zy, out=yZeroed);
-    Not16(in=yZeroed, out=yNot);
-    Mux16(a=yZeroed, b=yNot, sel=ny, out=yProcessed);
+    // Step 2: Handle zy and ny (zero/negate y)
+    Mux16(a=y, b=false, sel=zy, out=y1);
+    Not16(in=y1, out=ny1);
+    Mux16(a=y1, b=ny1, sel=ny, out=y2);
 
-    // AND or ADD
-    And16(a=xProcessed, b=yProcessed, out=andResult);
-    Add16(a=xProcessed, b=yProcessed, out=addResult);
+    // Step 3: f — AND or ADD
+    And16(a=x2, b=y2, out=fAnd);
+    Add16(a=x2, b=y2, out=fAdd);
+    Mux16(a=fAnd, b=fAdd, sel=f, out=fOut);
 
-    Mux16(
-        a=andResult,
-        b=addResult,
-        sel=f,
-        out=preOut
-    );
+    // Step 4
+    Not16(in=fOut, out=nfOut);
+    Mux16(a=fOut, b=nfOut, sel=no, out=out, out[0..7]=low8, out[8..15]=high8, out[15]=ng);
 
-    // Final negation
-    Not16(in=preOut, out=outNot);
+    // Step 5
+    Or8Way(in=low8, out=orLow);
+    Or8Way(in=high8, out=orHigh);
+    Or(a=orLow, b=orHigh, out=notZero);
+    Not(in=notZero, out=zr);
 
-    Mux16(
-        a=preOut,
-        b=outNot,
-        sel=no,
-        out=out
-    );
-
-    // zr = 1 when out == 0
-    Or8Way(in=out[0..7], out=orLow);
-    Or8Way(in=out[8..15], out=orHigh);
-    Or(a=orLow, b=orHigh, out=orAll);
-    Not(in=orAll, out=zr);
-
-    // ng = MSB of output
-    And(a=out[15], b=true, out=ng);
 }
