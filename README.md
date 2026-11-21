@@ -12,6 +12,7 @@ Semester 3 implementations for the Nand2Tetris course. This repository contains 
 | [`Project 5 of nand_2_tetris`](Project%205%20of%20nand_2_tetris) | Hack CPU, memory map, and computer |
 | [`Assembly/Basics`](Assembly/Basics) | Addition, branching, and looping |
 | [`Assembly/IO`](Assembly/IO) | Keyboard, screen, and instruction-format examples |
+| [`Capstone`](Capstone) | Custom assembler and complete computer demonstrations |
 
 ## Project 1 — Boolean Logic
 
@@ -70,6 +71,15 @@ The major chips that compose the Hack computer:
 - [`screen.asm`](Assembly/IO/screen.asm) writes values to selected screen-memory locations.
 - [`Hack-to-Binary.asm`](Assembly/IO/Hack-to-Binary.asm) lists the binary instruction fields for example Hack assembly instructions.
 
+## Capstone Project
+
+The [`Capstone`](Capstone) directory extends the course work with an assembler and additional computer demonstrations:
+
+- [`Part A`](Capstone/PartA) contains complete CPU, memory, and computer HDL implementations, with screenshots from the Hardware Simulator.
+- [`Part B`](Capstone/PartB) provides `Add.asm`, duplicate-label testing, and the Python assembler used to produce Hack machine code.
+- [`Part C`](Capstone/PartC) contains the interactive `Box.asm` graphics program and screenshots demonstrating keyboard input and screen output.
+- The `assembler.py` scripts support assembly, symbol handling, and generation of `.hack` files.
+
 ## Repository Structure
 
 ```text
@@ -81,7 +91,7 @@ Nand2Tetris/
 │   ├── CPU.hdl
 │   ├── Memory.hdl
 │   └── Computer.hdl
-└── Assembly/
+├── Assembly/
     ├── Basics/
     │   ├── Add.asm
     │   ├── branching.asm
@@ -90,6 +100,10 @@ Nand2Tetris/
         ├── Hack-to-Binary.asm
         ├── keyboard.asm
         └── screen.asm
+└── Capstone/
+│   ├── PartA/
+│   ├── PartB/
+│   └── PartC/
 ```
 
 ## Running the HDL Projects
